@@ -120,7 +120,7 @@ public class IllegalXmlCharacterFilterWriter extends FilterWriter
         {
             return true;
         }
-        if (c == '\u0009' || c == '\n' || c == '\r') 
+        if (c == '\u0009' || c == '\n' || c == '\r' || c == (char) 32)
         {
             return false;
         }

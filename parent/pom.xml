@@ -33,7 +33,7 @@
         This project is the home of the MyFaces implementation of the JavaServer Faces 2.3 specification, and
         consists of an API module (javax.faces.* classes) and an implementation module (org.apache.myfaces.* classes).
     </description>
-    <version>2.3.4-SNAPSHOT</version>
+    <version>2.3.3.TRAVELC.1</version>
     <url>http://myfaces.apache.org/core23</url>
 
     <issueManagement>
@@ -672,6 +672,15 @@
       <name>Apache Website</name>
       <url>scp://localhost/${user.home}/myfaces-site/${siteModule.path}</url>
     </site>
+      <snapshotRepository>
+          <id>nexus</id>
+          <url>http://nexus.travelcompositor.com/repository/maven-releases</url>
+      </snapshotRepository>
+      <repository>
+          <id>nexus</id>
+          <url>http://nexus.travelcompositor.com/repository/maven-releases</url>
+
+      </repository>
   </distributionManagement>
   <properties>
     <siteModule.path>core23</siteModule.path>
