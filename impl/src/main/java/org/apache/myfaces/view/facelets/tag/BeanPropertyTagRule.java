@@ -22,12 +22,15 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.function.BiConsumer;
 
+import javax.faces.context.FacesContext;
 import javax.faces.view.facelets.FaceletContext;
 import javax.faces.view.facelets.MetaRule;
 import javax.faces.view.facelets.Metadata;
 import javax.faces.view.facelets.MetadataTarget;
 import javax.faces.view.facelets.TagAttribute;
 import javax.faces.view.facelets.TagAttributeException;
+
+import org.apache.myfaces.util.lang.Lazy;
 
 /**
  * 
@@ -85,8 +88,8 @@ public final class BeanPropertyTagRule extends MetaRule
         private final Method method;
         private final BiConsumer<Object, Object> function;
         private final TagAttribute attribute;
-        private Object value;
-        private volatile boolean valueInitialized;
+        private final Lazy<Object> value = new Lazy<>(this::createValue);
+        private final Lazy<Object[]> valueArgs = new Lazy<>(() -> new Object[] { createValue() });
 
         public LiteralPropertyMetadata(Class<?> propertyType, Method method, TagAttribute attribute)
         {
@@ -112,11 +115,11 @@ public final class BeanPropertyTagRule extends MetaRule
             {
                 if (function != null)
                 {
-                    function.accept(instance, getValue(ctx));
+                    function.accept(instance, value.get());
                 }
                 else if (method != null)
                 {
-                    method.invoke(instance, new Object[] { getValue(ctx) });
+                    method.invoke(instance, valueArgs.get());
                 }
             }
             catch (InvocationTargetException e)
@@ -129,23 +132,13 @@ public final class BeanPropertyTagRule extends MetaRule
             }
         }
 
-        private Object getValue(FaceletContext ctx)
+        private Object createValue()
         {
-            if (!valueInitialized)
-            {
-                synchronized (this)
-                {
-                    if (!valueInitialized)
-                    {
-                        String str = this.attribute.getValue();
-                        value = ctx.getExpressionFactory().coerceToType(str, propertyType);
-                        valueInitialized = true;
-                    }
-                }
-            }
-            return value;
+            // Resolve the active context only during initialization; do not retain request state.
+            FaceletContext ctx = (FaceletContext) FacesContext.getCurrentInstance()
+                    .getAttributes().get(FaceletContext.FACELET_CONTEXT_KEY);
+            return ctx.getExpressionFactory().coerceToType(attribute.getValue(), propertyType);
         }
-
     }
 
     final static class DynamicPropertyMetadata extends Metadata
